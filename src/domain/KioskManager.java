@@ -9,9 +9,10 @@ public class KioskManager {
     private Map<String,Category> categories = new LinkedHashMap<>();
     private List<Product> products = new LinkedList<>();
     private List<Order> orders = new LinkedList<>();
-
+    private List<Order> totalOrders = new LinkedList<>();
     private Map<String, Integer> ordersCount = new HashMap<>();
     private int orderCount=1;
+    private int totalAmount = 0;
 
     public KioskManager() {
         categories.put("면류",new Category("면  류","중식 특유의 불향이 가득한 명품 면"));
@@ -50,7 +51,7 @@ public class KioskManager {
             DrawMenu();
         }
     }
-    public void DrawMenu(){
+    private void DrawMenu(){
         System.out.println("\n백종원의 홍콩반점 0410에 오신것을 환영합니다.");
         System.out.println("아래 메뉴판을 보시고 메뉴를 골라 입력해주세요.");
         System.out.println();
@@ -72,13 +73,21 @@ public class KioskManager {
         System.out.print("메뉴 선택 => ");
 
         int select = sc.nextInt();
-        if(select<=4)
+
+        if(select ==0){
+            secretOrders();
+        }
+        else if(select<=4)
             SelectMenu(select);
         else
             SelectOrder(select);
     }
 
-    public void SelectMenu(int select){
+    private void secretOrders(){
+        printTotalSalesAmount();
+        printTotalOrders();
+    }
+    private void SelectMenu(int select){
         String m = menu[select];
 
         Category c = categories.get(m);
@@ -100,11 +109,12 @@ public class KioskManager {
             return;
     }
 
-    public void AddCart(Product product){
+    private void AddCart(Product product){
         orders.add(new Order(product));
+        totalOrders.add(new Order(product));
         ordersCount.put(product.getName(),ordersCount.getOrDefault(product.getName(),0)+1);
     }
-    public void SelectOrder(int select){
+    private void SelectOrder(int select){
         String m = menu[select];
         int s = 0;
 
@@ -126,7 +136,7 @@ public class KioskManager {
         }
     }
 
-    public int printOrders(){
+    private int printOrders(){
         System.out.println("아래와 같이 주문 하시겠습니까?");
         System.out.println("[Orders ]");
 
@@ -134,8 +144,12 @@ public class KioskManager {
         AtomicInteger total = new AtomicInteger();
         orders.forEach(order -> {
             Product product = order.getProduct();
+            // 주문 개수 기능 추가
+            // HashMap을 사용하여 구현
+            // 시간 관계상 미구현
             System.out.printf("%s | W %d | %s\n",product.getName(),product.getPrice(),product.getDescribe());
             total.addAndGet(product.getPrice());
+            totalAmount+=product.getPrice();
         });
 
         System.out.println("\n[Total ]");
@@ -147,11 +161,12 @@ public class KioskManager {
         return s;
     }
 
-    public void orderComplete()  {
+    private void orderComplete()  {
         if(orders.size()==0) {
             System.out.println("선택한 주문이 없습니다.");
             return;
         }
+
         orders.clear();
 
         System.out.println("주문이 완료되었습니다.!\n");
@@ -166,7 +181,7 @@ public class KioskManager {
         }
     }
 
-    public void cancelOrder(){
+    private void cancelOrder(){
         System.out.println("진행하던 주문을 취소하시겠습니까?");
         System.out.println("1. 확인 2. 취소");
 
@@ -174,7 +189,33 @@ public class KioskManager {
 
         if(s==1){
             orders.clear();
+            totalAmount = 0;
         }else{
+            return;
+        }
+    }
+
+    private void printTotalSalesAmount(){
+        System.out.println("[ 총 판매금액 현황 ]");
+        System.out.printf("현재까지 총 판매된 금액은 [W %d ] 입니다.\n",totalAmount);
+
+        System.out.println("1. 돌아가기");
+        if(sc.nextInt()==1){
+            return;
+        }
+    }
+
+    private void printTotalOrders(){
+        System.out.println("[ 총 판매상품 목록 현황 ]");
+        System.out.println("현재까지 총 판매된 상품 목록은 아래와 같습니다.");
+
+        totalOrders.forEach(order -> {
+            Product p = order.getProduct();
+            System.out.printf("- %s | W %d\n",p.getName(),p.getPrice());
+        });
+
+        System.out.println("1. 돌아가기");
+        if(sc.nextInt()==1){
             return;
         }
     }
